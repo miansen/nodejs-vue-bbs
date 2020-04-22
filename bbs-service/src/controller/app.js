@@ -9,6 +9,9 @@ const send = require('koa-send');
 const userService = require('../service/UserService');
 const tabService = require('../service/TabService');
 const xxjjService = require('../service/XxjjService');
+const postService = require('../service/PostService');
+const commentService = require('../service/CommentService');
+const likeService = require('../service/LikeService');
 
 const app = new Koa();
 app.use(Cors());
@@ -117,14 +120,12 @@ router.post('/search_users', async (ctx, next) => {
 });
 
 router.post('/add_invitation', async (ctx, next) => {
-    const invitation = ctx.request.body;
-    let data = null, error = '';
+    const post = ctx.request.body;
+    let data = '';
+    let error = '';
     try {
-        const text = fs.readFileSync(invitationJson, 'utf-8');
-        const invitations = JSON.parse(text);
-        invitation.id = Date.now();
-        invitations.push(invitation);
-        fs.writeFileSync(invitationJson, JSON.stringify(invitations, null, 4));
+        post.date = Date.now();
+        await postService.save(post);
         data = '发布帖子成功';
     } catch (err) {
         error = err.toString();
@@ -133,20 +134,19 @@ router.post('/add_invitation', async (ctx, next) => {
 });
 
 router.put('/update_invitation', async (ctx, next) => {
-    const invitation = ctx.request.body;
-    let data = null, error = '';
+    const post = ctx.request.body;
+    const likers = post.likers;
+    const comments = post.comments;
+    let data = '';
+    let error = '';
     try {
-        const text = fs.readFileSync(invitationJson, 'utf-8');
-        const invitations = JSON.parse(text);
-        const oldInvitation = invitations.find(ele => ele.id === invitation.id);
-        if (!oldInvitation) {
-            error = '帖子不存在';
-        } else {
-            delete invitation.id;
-            Object.assign(oldInvitation, invitation);
-            fs.writeFileSync(invitationJson, JSON.stringify(invitations, null, 4));
-            data = '更新帖子成功';
-        }
+        likers.map(async like => {
+            await likeService.save(like);
+        })
+        comments.map(async comment => {
+            await commentService.save(comment);
+        })
+        await postService.update(post);
     } catch (err) {
         error = err.toString();
     }
@@ -155,37 +155,21 @@ router.put('/update_invitation', async (ctx, next) => {
 
 router.post('/search_invitations', async (ctx, next) => {
     const { page, limit, username, keywords, tab } = ctx.request.body;
-    let data = null, total = 0, error = '';
+    let data = null;
+    let total = 0;
+    let error = '';
     try {
-        const settingsText = fs.readFileSync(settingsJson, 'utf-8');
-        const settings = JSON.parse(settingsText);
-        const topInvitationIds = settings.topInvitationIds;
-
-        const text = fs.readFileSync(invitationJson, 'utf-8');
-        const invitations = JSON.parse(text);
-        invitations.sort((a, b) => new Date(b.date) - new Date(a.date));
-        let matches = invitations;
-        matches.forEach(ele => {
-            ele.isTop = topInvitationIds.includes(ele.id);
+        let query = {
+            username: username,
+            title: keywords,
+            tab: tab
+        };
+        data = await postService.list(query, page, limit);
+        data.map(async post => {
+            await post.likers = likeService.listByPostId(post.id);
+            await post.comments = commentService.listByPostId(post.id);
         });
-        matches.sort((a, b) => a.isTop ? -1 : 1);
-        if (username) {
-            matches = matches.filter(ele => {
-                return ele.username === username;
-            });
-        }
-        if (keywords) {
-            matches = matches.filter(ele => {
-                return ele.title.indexOf(keywords) >= 0 || ele.content.indexOf(keywords) >= 0;
-            });
-        }
-        if (tab) {
-            matches = matches.filter(ele => {
-                return ele.tab === tab;
-            });
-        }
-        total = matches.length;
-        data = matches.slice((page - 1) * limit, page * limit);
+        total = postService.count(query);
     } catch (err) {
         error = err.toString();
     }
@@ -194,18 +178,13 @@ router.post('/search_invitations', async (ctx, next) => {
 
 router.get('/toggle_top', async (ctx, next) => {
     const id = Number(ctx.query.id);
-    let data = null, error = '';
+    let data = null;
+    let error = '';
     try {
-        const text = fs.readFileSync(settingsJson, 'utf-8');
-        const settings = JSON.parse(text);
-        if (settings.topInvitationIds.includes(id)) {
-            settings.topInvitationIds = settings.topInvitationIds.filter(ele => ele !== id);
-            data = '取消置顶成功';
-        } else {
-            settings.topInvitationIds.push(id);
-            data = '置顶成功';
-        }
-        fs.writeFileSync(settingsJson, JSON.stringify(settings, null, 4));
+        let post = await postService.getById(id);
+        post.isTop = true;
+        await postService.update(post);
+        data = "置顶成功";
     } catch (err) {
         error = err.toString();
     }
@@ -214,15 +193,10 @@ router.get('/toggle_top', async (ctx, next) => {
 
 router.delete('/delete_invitation', async (ctx, next) => {
     const id = Number(ctx.query.id);
-    let data = null, error = '';
+    let data = null;
+    let error = '';
     try {
-        const invitationText = fs.readFileSync(invitationJson, 'utf-8');
-        const invitations = JSON.parse(invitationText);
-        const index = invitations.findIndex(it => it.id === id);
-        if (index >= 0) {
-            invitations.splice(index, 1);
-        }
-        fs.writeFileSync(invitationJson, JSON.stringify(invitations, null, 4));
+        await postService.deleteById(id);
         data = '删除帖子成功';
     } catch (err) {
         error = err.toString();

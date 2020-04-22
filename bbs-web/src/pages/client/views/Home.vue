@@ -157,7 +157,9 @@ export default {
         invitation.comments = []
       }
       invitation.comments.push({
+        postId: invitation.id,
         username: this.user.username,
+        nickname: this.user.nickname,
         content: this.commentContent
       })
       await updateInvitation(invitation)
