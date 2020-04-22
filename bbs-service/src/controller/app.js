@@ -8,6 +8,7 @@ const send = require('koa-send');
 
 const userService = require('../service/UserService');
 const tabService = require('../service/TabService');
+const xxjjService = require('../service/XxjjService');
 
 const app = new Koa();
 app.use(Cors());
@@ -291,14 +292,10 @@ router.post('/tab/list', async (ctx, next) => {
 
 router.get('/xxjj/detail', async (ctx, next) => {
     const id = Number(ctx.query.id);
-    let data = null;
+    let data = {};
     let error = '';
     try {
-        const text = fs.readFileSync(xxjjJson, 'utf-8');
-        const xxjj = JSON.parse(text);
-        if (xxjj.id == id) {
-            data = xxjj;
-        }
+        data = await xxjjService.getById(id);
     } catch (err) {
         error = err.toString();
     }
@@ -306,24 +303,12 @@ router.get('/xxjj/detail', async (ctx, next) => {
 });
 
 router.put('/xxjj/update', async (ctx, next) => {
-    const newXxjj = ctx.request.body;
-    let data = null;
+    const xxjj = ctx.request.body;
+    let data = '';
     let error = '';
-    let oldXxjj = {};
     try {
-        const xxjjText = fs.readFileSync(xxjjJson, 'utf-8');
-        if (xxjjText) {
-            oldXxjj = JSON.parse(xxjjText);
-        }
-        if (!oldXxjj) {
-            error = '对象不存在';
-        } else if (newXxjj.id != oldXxjj.id) {
-            error = '参数错误';
-        } else {
-            Object.assign(oldXxjj, newXxjj);
-            fs.writeFileSync(xxjjJson, JSON.stringify(newXxjj, null, 4));
-            data = '更新成功';
-        }
+        await xxjjService.update(xxjj);
+        data = "更新成功";
     } catch (err) {
         error = err.toString();
     }
