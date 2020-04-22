@@ -47,30 +47,26 @@ router.post('/login', async (ctx, next) => {
     const { username, password } = ctx.request.body;
     let data = {};
     let error = '';
-    if (!username) {
-        error = '用户名为空';
-    } else if (!password) {
-        error = '密码为空';
-    } else {
-        try {
-            let user = await userService.getByUsernameAndPassword(username, password);
-            if (!user) {
-                error = '用户名或密码错误';
-            } else {
-                data = user;
-            }
-        } catch (err) {
-            error = err.toString();
+    try {
+        let user = await userService.getByUsernameAndPassword(username, password);
+        if (!user) {
+            error = '用户名或密码错误';
+        } else {
+            data = user;
         }
+    } catch (err) {
+        error = err.toString();
     }
     ctx.body = { code: 200, data, error };
 });
 
 router.post('/add_user', async (ctx, next) => {
     const user = ctx.request.body;
+    user.role = "user";
+    user.createDate = new Date();
     let error = '';
     try {
-        userService.save(user);
+        await userService.save(user);
     } catch (err) {
         error = err.toString();
     }
@@ -79,10 +75,11 @@ router.post('/add_user', async (ctx, next) => {
 
 router.put('/update_user', async (ctx, next) => {
     const user = ctx.request.body;
+    user.updateDate = new Date();
     let data = '';
     let error = '';
     try {
-        userService.update(user);
+        await userService.update(user);
         data = '更新用户成功';
     } catch (err) {
         error = err.toString();
@@ -95,7 +92,7 @@ router.delete('/delete_user', async (ctx, next) => {
     let data = '';
     let error = '';
     try {
-        userService.deleteByUsername(username);
+        await userService.deleteByUsername(username);
         data = '删除用户成功';
     } catch (err) {
         error = err.toString();
@@ -109,8 +106,8 @@ router.post('/search_users', async (ctx, next) => {
     let total = 0;
     let error = '';
     try {
-        total = userService.count();
-        data = userService.list(page, limit);
+        total = await userService.count();
+        data = await userService.list(page, limit);
     } catch (err) {
         error = err.toString();
     }

@@ -15,6 +15,7 @@
       >
         <el-table-column prop="id" label="ID" align="center" />
         <el-table-column prop="username" label="用户名" align="center" />
+        <el-table-column prop="nickname" label="昵称" align="center" />
         <el-table-column prop="password" label="密码" align="center" />
         <el-table-column label="操作" align="center">
           <template #default="scope">
@@ -166,7 +167,9 @@ export default {
     },
     resetForm () {
       this.userForm = {
+        id: '',
         username: '',
+        nickname: '',
         password: ''
       }
     }

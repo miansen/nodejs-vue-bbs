@@ -8,35 +8,35 @@ module.exports.save = async function(user) {
     userDao.create(user);
 }
 
-module.exports.deleteById = function(id) {
-    userDao.destory({
+module.exports.deleteById = async function(id) {
+    await userDao.destroy({
         where: {
             id: id
         }
     });
 }
 
-module.exports.deleteByUsername = function(username) {
-    userDao.destory({
+module.exports.deleteByUsername = async function(username) {
+    await userDao.destroy({
         where: {
             username: username
         }
     });
 }
 
-module.exports.update = function(user) {
+module.exports.update = async function(user) {
     if (!user.id) {
         throw "id 不能为空";
     }
-    userDao.update(user, {
+    await userDao.update(user, {
         where: {
             id: user.id
         }
     });
 }
 
-module.exports.getById = function(id) {
-    return userDao.findOne({
+module.exports.getById = async function(id) {
+    return await userDao.findOne({
         where: {
             id: id
         }
@@ -51,8 +51,14 @@ module.exports.getByUsername = async function(username) {
     });
 }
 
-module.exports.getByUsernameAndPassword = function(username, password) {
-    return userDao.findOne({
+module.exports.getByUsernameAndPassword = async function(username, password) {
+    if (!username) {
+        throw "用户名不能为空";
+    }
+    if (!password) {
+        throw "密码不能为空";
+    }
+    return await userDao.findOne({
         where: {
             username: username,
             password: password
@@ -60,8 +66,8 @@ module.exports.getByUsernameAndPassword = function(username, password) {
     });
 }
 
-module.exports.list = function(page, limit) {
-    return userDao.findAll({
+module.exports.list = async function(page, limit) {
+    return await userDao.findAll({
         where: {
             role: "user"
         },
@@ -70,6 +76,6 @@ module.exports.list = function(page, limit) {
     });
 }
 
-module.exports.count = function() {
-    return userDao.count();
+module.exports.count = async function() {
+    return await userDao.count();
 }

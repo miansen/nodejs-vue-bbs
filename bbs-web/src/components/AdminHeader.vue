@@ -25,7 +25,7 @@
     </nav>
     <el-button type="danger" class="logout" @click="handleLogout">退出</el-button>
     <router-link :to="{ name: 'Mine' }">
-      <span class="username">{{ user && user.username }}</span>
+      <span class="username">{{ user && user.nickname }}</span>
     </router-link>
   </header>
 </template>
