@@ -13,6 +13,7 @@
         fit
         highlight-current-row
       >
+        <el-table-column prop="id" label="ID" align="center" />
         <el-table-column prop="username" label="用户名" align="center" />
         <el-table-column prop="password" label="密码" align="center" />
         <el-table-column label="操作" align="center">
@@ -46,8 +47,14 @@
         width="360px"
       >
         <el-form :form="userForm">
+          <el-form-item v-show="false" label="ID">
+            <el-input v-model="userForm.id" placeholder="请输入ID" />
+          </el-form-item>
           <el-form-item v-show="!isEditing" label="用户名">
             <el-input v-model="userForm.username" placeholder="请输入用户名" />
+          </el-form-item>
+          <el-form-item label="昵称">
+            <el-input v-model="userForm.nickname" placeholder="请输入昵称" />
           </el-form-item>
           <el-form-item label="密码">
             <el-input v-model="userForm.password" placeholder="请输入密码" />
@@ -76,7 +83,9 @@ export default {
       },
       total: 0,
       userForm: {
+        id: '',
         username: '',
+        nickname: '',
         password: ''
       },
       dialogVisible: false,
@@ -118,11 +127,15 @@ export default {
       this.handleSearch()
     },
     async handleConfirm () {
-      const { username, password } = this.userForm
+      const { username, nickname, password } = this.userForm
       let message = ''
       if (!username.trim()) {
         message = '请填写用户名'
-      } else if (!password.trim()) {
+      }
+      if (!nickname.trim()) {
+        message = '请填写昵称'
+      }
+      if (!password.trim()) {
         message = '请填写密码'
       }
       if (message) {

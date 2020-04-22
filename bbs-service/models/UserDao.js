@@ -1,7 +1,7 @@
-var sequelize = require("./index").sequelize;
-var Sequelize = require("./index").Sequelize;
+const sequelize = require("./db").sequelize;
+const Sequelize = require("./db").Sequelize;
 
-var UserDao = sequelize.define("user", {
+const UserDao = sequelize.define("user", {
     id: {
         type: Sequelize.INTEGER,
         autoIncrement: true,
@@ -27,11 +27,13 @@ var UserDao = sequelize.define("user", {
     createDate: {
         type: Sequelize.DATE,
         allowNull: false,
-        defaultValue: Sequelize.NOW
+        defaultValue: Sequelize.NOW,
+        field: 'create_date',
     },
     updateDate: {
         type: Sequelize.DATE,
-        allowNull: true
+        allowNull: true,
+        field: 'update_date',
     },
 }, {
     tableName: "user",

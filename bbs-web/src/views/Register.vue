@@ -7,6 +7,12 @@
           placeholder="请输入用户名"
         />
       </el-form-item>
+      <el-form-item label="昵称">
+        <el-input
+          v-model.trim="registerForm.nickname"
+          placeholder="请输入昵称"
+        />
+      </el-form-item>
       <el-form-item label="密码">
         <el-input
           v-model.trim="registerForm.password"
@@ -38,6 +44,7 @@ export default {
     return {
       registerForm: {
         username: '',
+        nickname: '',
         password: '',
         confirmPassword: ''
       }
@@ -48,10 +55,12 @@ export default {
   },
   methods: {
     handleRegister () {
-      const { username, password, confirmPassword } = this.registerForm
+      const { username, nickname, password, confirmPassword } = this.registerForm;
       let message = ''
       if (!username) {
         message = '请输入用户名'
+      } else if (!nickname) {
+        message = '请输入昵称'
       } else if (!password) {
         message = '请输入密码'
       } else if (!confirmPassword) {

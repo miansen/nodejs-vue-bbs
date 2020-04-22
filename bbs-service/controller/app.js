@@ -5,8 +5,8 @@ const KoaBody = require('koa-body');
 const KoaRouter = require('koa-router');
 const Cors = require('@koa/cors');
 const send = require('koa-send');
-const dao = require('./dao');
-const userService = require('./service/UserService');
+
+const userService = require('../service/UserService');
 
 const app = new Koa();
 app.use(Cors());
@@ -26,28 +26,21 @@ const tabJson = path.join(__dirname, 'tab.json');
 const xxjjJson = path.join(__dirname, 'xxjj.json');
 
 router.post('/register', async (ctx, next) => {
-    const { username, password } = ctx.request.body;
-    let data = null, error = '';
-    if (!username) {
-        error = '用户名为空';
-    } else if (!password) {
-        error = '密码为空';
-    } else {
-        try {
-            const text = fs.readFileSync(userJson, 'utf-8');
-            const users = JSON.parse(text);
-            if (users[username]) {
-                error = '用户名已存在';
-            } else {
-                users[username] = password;
-                fs.writeFileSync(userJson, JSON.stringify(users, null, 4));
-                data = { username };
-            }
-        } catch (err) {
-            error = err.toString();
-        }
+    const { username, password, nickname } = ctx.request.body;
+    let user = {
+        username: username,
+        nickname: nickname,
+        password: password,
+        role: "user",
+        createDate: new Date()
     }
-    ctx.body = { code: 200, data, error };
+    let error = '';
+    try {
+        await userService.save(user);
+    } catch (err) {
+        error = err.toString();
+    }
+    ctx.body = { code: 200, data: user, error };
 });
 
 router.post('/login', async (ctx, next) => {
@@ -60,14 +53,11 @@ router.post('/login', async (ctx, next) => {
         error = '密码为空';
     } else {
         try {
-            const text = fs.readFileSync(userJson, 'utf-8');
-            const users = JSON.parse(text);
-            if (users[username] === password || users[username].password === password) {
-                data.username = username;
-                data.password = users[username];
-                data.role = users[username].role;
-            } else {
+            let user = await userService.getByUsernameAndPassword(username, password);
+            if (!user) {
                 error = '用户名或密码错误';
+            } else {
+                data = user;
             }
         } catch (err) {
             error = err.toString();
@@ -78,36 +68,22 @@ router.post('/login', async (ctx, next) => {
 
 router.post('/add_user', async (ctx, next) => {
     const user = ctx.request.body;
-    let data = null, error = '';
+    let error = '';
     try {
-        const text = fs.readFileSync(userJson, 'utf-8');
-        const users = JSON.parse(text);
-        if (users[user.username]) {
-            error = '用户名已存在';
-        } else {
-            users[user.username] = user.password;
-            fs.writeFileSync(userJson, JSON.stringify(users, null, 4));
-            data = '发布帖子成功';
-        }
+        userService.save(user);
     } catch (err) {
         error = err.toString();
     }
-    ctx.body = { code: 200, data, error };
+    ctx.body = { code: 200, data: user, error };
 });
 
 router.put('/update_user', async (ctx, next) => {
     const user = ctx.request.body;
-    let data = null, error = '';
+    let data = '';
+    let error = '';
     try {
-        const text = fs.readFileSync(userJson, 'utf-8');
-        const users = JSON.parse(text);
-        if (!users[user.username]) {
-            error = '用户名不存在';
-        } else {
-            users[user.username] = user.password;
-            fs.writeFileSync(userJson, JSON.stringify(users, null, 4));
-            data = '更新用户成功';
-        }
+        userService.update(user);
+        data = '更新用户成功';
     } catch (err) {
         error = err.toString();
     }
@@ -116,17 +92,11 @@ router.put('/update_user', async (ctx, next) => {
 
 router.delete('/delete_user', async (ctx, next) => {
     const { username } = ctx.query;
-    let data = null, error = '';
+    let data = '';
+    let error = '';
     try {
-        const text = fs.readFileSync(userJson, 'utf-8');
-        const users = JSON.parse(text);
-        if (!users[username]) {
-            error = '用户名不存在';
-        } else {
-            delete users[username];
-            fs.writeFileSync(userJson, JSON.stringify(users, null, 4));
-            data = '删除用户成功';
-        }
+        userService.deleteByUsername(username);
+        data = '删除用户成功';
     } catch (err) {
         error = err.toString();
     }
@@ -135,21 +105,12 @@ router.delete('/delete_user', async (ctx, next) => {
 
 router.post('/search_users', async (ctx, next) => {
     const { page, limit } = ctx.request.body;
-    let data = null, total = 0, error = '';
+    let data = null;
+    let total = 0;
+    let error = '';
     try {
-        const text = fs.readFileSync(userJson, 'utf-8');
-        const usersDict = JSON.parse(text);
-        const users = Object.entries(usersDict).map((ele) => {
-            const user = { username: ele[0] };
-            if (ele[1].role) {
-                Object.assign(user, ele[1]);
-            } else {
-                user.password = ele[1];
-            }
-            return user;
-        });
-        total = users.length;
-        data = users.slice((page - 1) * limit, page * limit);
+        total = userService.count();
+        data = userService.list(page, limit);
     } catch (err) {
         error = err.toString();
     }
