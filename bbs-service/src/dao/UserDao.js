@@ -1,5 +1,5 @@
-const sequelize = require("./db").sequelize;
-const Sequelize = require("./db").Sequelize;
+const sequelize = require("../util/DatabaseUtil").sequelize;
+const Sequelize = require("../util/DatabaseUtil").Sequelize;
 
 const UserDao = sequelize.define("user", {
     id: {
@@ -26,7 +26,7 @@ const UserDao = sequelize.define("user", {
     },
     createDate: {
         type: Sequelize.DATE,
-        allowNull: false,
+        allowNull: true,
         defaultValue: Sequelize.NOW,
         field: 'create_date',
     },

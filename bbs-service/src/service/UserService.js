@@ -1,4 +1,4 @@
-const userDao = require("../models/UserDao");
+const userDao = require("../dao/UserDao");
 
 module.exports.save = async function(user) {
     let oldUser = await this.getByUsername(user.username);

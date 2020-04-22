@@ -7,6 +7,7 @@ const Cors = require('@koa/cors');
 const send = require('koa-send');
 
 const userService = require('../service/UserService');
+const tabService = require('../service/TabService');
 
 const app = new Koa();
 app.use(Cors());
@@ -237,51 +238,24 @@ router.delete('/delete_invitation', async (ctx, next) => {
 
 router.post('/tab/add', async (ctx, next) => {
     const tab = ctx.request.body;
-    let data = null;
+    let data = '';
     let error = '';
-    let tabs = [];
-    if (!tab.tabName) {
-        error = '板块名为空';
-    } else {
-        try {
-            const tabText = fs.readFileSync(tabJson, 'utf-8');
-            if (tabText) {
-                tabs = JSON.parse(tabText);
-            }
-            const index = tabs.findIndex(it => it.tabName === tab.tabName);
-            if (index >= 0) {
-                error = '板块名已存在';
-            } else {
-                tab.id = Date.now();
-                tabs.push(tab);
-                fs.writeFileSync(tabJson, JSON.stringify(tabs, null, 4));
-                data = "添加板块成功";
-            }
-        } catch (err) {
-            error = err.toString();
-        }
+    try {
+        await tabService.save(tab);
+        data = "添加成功";
+    } catch (err) {
+        error = err.toString();
     }
     ctx.body = { code: 200, data, error };
 });
 
 router.delete('/tab/delete', async (ctx, next) => {
     const id = Number(ctx.query.id);
-    let data = null;
+    let data = '';
     let error = '';
-    let tabs = [];
     try {
-        const tabText = fs.readFileSync(tabJson, 'utf-8');
-        if (tabText) {
-            tabs = JSON.parse(tabText);
-        }
-        const index = tabs.findIndex(it => it.id === id);
-        if (index >= 0) {
-            tabs.splice(index, 1);
-            fs.writeFileSync(tabJson, JSON.stringify(tabs, null, 4));
-            data = '删除板块成功';
-        } else {
-            error = '板块不存在';
-        }
+        await tabService.deleteById(id);
+        data = "删除成功";
     } catch (err) {
         error = err.toString();
     }
@@ -290,25 +264,11 @@ router.delete('/tab/delete', async (ctx, next) => {
 
 router.put('/tab/update', async (ctx, next) => {
     const tab = ctx.request.body;
-    let data = null;
+    let data = '';
     let error = '';
-    let tabs = [];
     try {
-        const tabText = fs.readFileSync(tabJson, 'utf-8');
-        if (tabText) {
-            tabs = JSON.parse(tabText);
-        }
-        const oldTab = tabs.find(ele => ele.id === tab.id);
-        if (!oldTab) {
-            error = '板块不存在';
-        } else if (oldTab.tabName === tab.tabName) {
-            error = '板块名已存在';
-        } else {
-            delete tab.id;
-            Object.assign(oldTab, tab);
-            fs.writeFileSync(tabJson, JSON.stringify(tabs, null, 4));
-            data = '更新板块成功';
-        }
+        await tabService.update(tab);
+        data = "更新成功";
     } catch (err) {
         error = err.toString();
     }
@@ -317,17 +277,12 @@ router.put('/tab/update', async (ctx, next) => {
 
 router.post('/tab/list', async (ctx, next) => {
     const { page, limit } = ctx.request.body;
-    let data = null;
+    let data = [];
     let total = 0;
     let error = '';
-    let tabs = [];
     try {
-        const tabText = fs.readFileSync(tabJson, 'utf-8');
-        if (tabText) {
-            tabs = JSON.parse(tabText);
-        }
-        total = tabs.length;
-        data = tabs.slice((page - 1) * limit, page * limit);
+        total = await tabService.count();
+        data = await tabService.list(page, limit);
     } catch (err) {
         error = err.toString();
     }

@@ -1,4 +1,4 @@
-const dbConfig = {
+const databaseConfig = {
     database: 'bbs', // 使用哪个数据库
     username: 'root', // 用户名
     password: '123', // 口令
@@ -6,4 +6,4 @@ const dbConfig = {
     port: 3306 // 端口号，MySQL默认3306
 };
 
-module.exports = dbConfig;
+module.exports = databaseConfig;

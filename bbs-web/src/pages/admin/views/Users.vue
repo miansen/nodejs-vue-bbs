@@ -17,6 +17,11 @@
         <el-table-column prop="username" label="用户名" align="center" />
         <el-table-column prop="nickname" label="昵称" align="center" />
         <el-table-column prop="password" label="密码" align="center" />
+        <el-table-column prop="createDate" label="注册时间" align="center" >
+          <template #default="scope">
+            {{ new Date(scope.row.createDate).toLocaleString() }}
+          </template>
+        </el-table-column>
         <el-table-column label="操作" align="center">
           <template #default="scope">
             <span class="operations">
