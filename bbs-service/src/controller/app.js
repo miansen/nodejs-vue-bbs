@@ -124,6 +124,9 @@ router.post('/add_invitation', async (ctx, next) => {
     let data = '';
     let error = '';
     try {
+        let user = await userService.getByUsername(post.username);
+        post.nickname = user.nickname;
+        post.isTop = false;
         post.date = Date.now();
         await postService.save(post);
         data = '发布帖子成功';
@@ -140,12 +143,6 @@ router.put('/update_invitation', async (ctx, next) => {
     let data = '';
     let error = '';
     try {
-        likers.map(async like => {
-            await likeService.save(like);
-        })
-        comments.map(async comment => {
-            await commentService.save(comment);
-        })
         await postService.update(post);
     } catch (err) {
         error = err.toString();
@@ -165,11 +162,7 @@ router.post('/search_invitations', async (ctx, next) => {
             tab: tab
         };
         data = await postService.list(query, page, limit);
-        data.map(async post => {
-            await post.likers = likeService.listByPostId(post.id);
-            await post.comments = commentService.listByPostId(post.id);
-        });
-        total = postService.count(query);
+        total = await postService.count(query);
     } catch (err) {
         error = err.toString();
     }
@@ -205,7 +198,19 @@ router.delete('/delete_invitation', async (ctx, next) => {
 });
 
 
-
+router.post('/like/save', async (ctx, next) => {
+    const like = ctx.request.body;
+    let data = '';
+    let error = '';
+    try {
+        let post = await postService.getById(like.postId);
+        await post.createLike(like);
+        data = "点赞成功";
+    } catch (err) {
+        error = err.toString();
+    }
+    ctx.body = { code: 200, data, error };
+});
 
 
 

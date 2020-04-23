@@ -43,4 +43,24 @@ const PostDao = sequelize.define("post", {
     timestamps: false
 });
 
+sequelize.authenticate().then(async () => {
+
+    console.log('Connection has been established successfully.');
+
+    const likeDao = require("../dao/LikeDao");
+    const commentDao = require("../dao/CommentDao");
+
+    PostDao.hasMany(likeDao);
+    PostDao.hasMany(commentDao);
+
+    sequelize.sync({
+
+    }).then(async () => {
+        console.log(`Database & tables created!`);
+    }).catch(e => {
+        console.error('Unable to connect to the database:', e);
+    });
+
+});
+
 module.exports = PostDao;

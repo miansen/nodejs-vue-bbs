@@ -71,7 +71,7 @@
 </template>
 
 <script>
-import { updateInvitation, searchInvitations } from '@/api'
+import { updateInvitation, searchInvitations, saveLike } from '@/api'
 
 import { formatDateTime } from '@/utils'
 
@@ -127,8 +127,12 @@ export default {
       }
       const hasLiked = invitation.likers && !!invitation.likers.find(liker => liker === this.user.username)
       if (!hasLiked) {
-        invitation.likers.push(this.user.username)
-        await updateInvitation(invitation)
+        invitation.likers.push(this.user.username);
+        let like = {
+          userId: this.user.id,
+          postId: invitation.id
+        }
+        await saveLike(like);
         this.$message({
           type: 'success',
           message: '点赞成功',

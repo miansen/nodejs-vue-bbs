@@ -46,6 +46,9 @@ export function toggleTop (id) {
   return axios.get(`/toggle_top?id=${id}`)
 }
 
+export function saveLike (data) {
+  return axios.post('/like/save', data)
+}
 
 export function addTab (data) {
   return axios.post('/tab/add', data)

@@ -1,5 +1,5 @@
 const databaseConfig = {
-    database: 'bbs', // 使用哪个数据库
+    database: 'bbs_bak', // 使用哪个数据库
     username: 'root', // 用户名
     password: '123', // 口令
     host: 'localhost', // 主机名

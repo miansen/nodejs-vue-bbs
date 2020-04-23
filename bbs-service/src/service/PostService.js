@@ -34,14 +34,20 @@ module.exports.getById = async function(id) {
 }
 
 module.exports.list = async function(query, page, limit) {
+    let where = {};
+    if (query.username) {
+        where.username = query.username;
+    }
+    if (query.tab) {
+        where.tab = query.tab;
+    }
+    if (query.title) {
+        where.title = {
+            [Op.like]:'%' + query.title + '%'
+        }
+    }
     return await postDao.findAll({
-        where: {
-            username: query.username,
-            tab: query.tab,
-            title: {
-                [Op.like]:'%' + query.title + '%'
-            }
-        },
+        where: where,
         order: [
             ["isTop", "DESC"],
             ["date", "DESC"]
@@ -52,13 +58,19 @@ module.exports.list = async function(query, page, limit) {
 }
 
 module.exports.count = async function(query) {
-    return await postDao.count({
-        where: {
-            username: query.username,
-            tab: query.tab,
-            title: {
-                [Op.like]:'%' + query.title + '%'
-            }
+    let where = {};
+    if (query.username) {
+        where.username = query.username;
+    }
+    if (query.tab) {
+        where.tab = query.tab;
+    }
+    if (query.title) {
+        where.title = {
+            [Op.like]:'%' + query.title + '%'
         }
+    }
+    return await postDao.count({
+        where: where
     });
 }
