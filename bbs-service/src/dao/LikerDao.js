@@ -3,7 +3,7 @@ const databaseUtil = require("../util/DatabaseUtil");
 const sequelize = databaseUtil.sequelize;
 const Sequelize = databaseUtil.Sequelize;
 
-const LikeDao = sequelize.define("like", {
+const LikerDao = sequelize.define("liker", {
     id: {
         type: Sequelize.INTEGER,
         autoIncrement: true,
@@ -20,9 +20,9 @@ const LikeDao = sequelize.define("like", {
         field: 'post_id'
     }
 }, {
-    tableName: "like",
+    tableName: "liker",
     freezeTableName: true,
     timestamps: false
 });
 
-module.exports = LikeDao;
+module.exports = LikerDao;

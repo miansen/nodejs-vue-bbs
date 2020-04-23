@@ -47,11 +47,13 @@ sequelize.authenticate().then(async () => {
 
     console.log('Connection has been established successfully.');
 
-    const likeDao = require("../dao/LikeDao");
+    const likerDao = require("./LikerDao");
     const commentDao = require("../dao/CommentDao");
+    const fileDao = require("../dao/FileDao");
 
-    PostDao.hasMany(likeDao);
+    PostDao.hasMany(likerDao);
     PostDao.hasMany(commentDao);
+    PostDao.hasMany(fileDao);
 
     sequelize.sync({
 

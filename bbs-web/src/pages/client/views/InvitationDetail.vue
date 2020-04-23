@@ -7,7 +7,7 @@
       </div>
       <p>
         发布人：
-        <span class="username">{{ invitation.username }}</span>
+        <span class="username">{{ invitation.nickname }}</span>
       </p>
       <p>
         发帖时间：
@@ -48,7 +48,7 @@
         </div>
         <div v-if="invitation.comments" class="comments-container">
           <div v-for="(comment, index) in invitation.comments" :key="index" class="comment-panel">
-            <span class="username">{{ comment.username }}</span>
+            <span class="username">{{ comment.nickname }}</span>
             <pre class="comment-content">{{ comment.content }}</pre>
           </div>
         </div>
@@ -60,7 +60,7 @@
 
 <script>
 import { formatDateTime } from '@/utils'
-import { updateInvitation } from '@/api'
+import { updateInvitation, saveComment } from '@/api'
 export default {
   data () {
     return {
@@ -89,11 +89,14 @@ export default {
       if (!this.invitation.comments) {
         this.invitation.comments = []
       }
-      this.invitation.comments.push({
+      let comment = {
         username: this.user.username,
+        nickname: this.user.nickname,
+        postId: this.invitation.id,
         content: this.commentContent
-      })
-      await updateInvitation(this.invitation)
+      }
+      this.invitation.comments.push(comment);
+      await saveComment(comment);
       this.$message({
         type: 'success',
         message: '评论成功'

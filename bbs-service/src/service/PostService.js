@@ -1,9 +1,22 @@
 const postDao = require("../dao/PostDao");
+const likeDao = require("../dao/LikerDao");
+const commentDao = require("../dao/CommentDao");
+const fileDao = require("../dao/FileDao");
+const fileService = require("./FileService");
 const Sequelize = require("../util/DatabaseUtil").Sequelize;
 const Op = Sequelize.Op;
 
 module.exports.save = async function(post) {
-    postDao.create(post);
+    let savePost = await postDao.create(post);
+    let files = post.files;
+    if (files && files.length > 0) {
+        for (let i = 0; i < files.length; i++) {
+            let file = files[i];
+            file.postId = savePost.id;
+            fileService.save(file);
+        }
+    }
+    return savePost;
 }
 
 module.exports.deleteById = async function(id) {
@@ -47,6 +60,7 @@ module.exports.list = async function(query, page, limit) {
         }
     }
     return await postDao.findAll({
+        include: [likeDao, commentDao, fileDao],
         where: where,
         order: [
             ["isTop", "DESC"],

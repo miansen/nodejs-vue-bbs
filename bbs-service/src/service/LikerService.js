@@ -1,4 +1,4 @@
-const likeDao = require("../dao/LikeDao");
+const likeDao = require("../dao/LikerDao");
 
 module.exports.save = async function(like) {
     likeDao.create(like);

@@ -1,6 +1,6 @@
 <template>
 
-  <!--<el-header v-if="activeNav !== 'Login' && activeNav !== 'Register'" class="me-area" style="height: 61px;">
+  <el-header v-if="activeNav !== 'Login' && activeNav !== 'Register'" class="me-area" style="height: 61px;">
     <el-row class="me-header">
       <el-col :span="4" class="me-header-left">
         <router-link to="/" class="me-title">
@@ -41,25 +41,41 @@
           <el-menu-item index="/add_invitation">发帖</el-menu-item>
           <el-submenu index>
             <template slot="title">
-              {{user.username}}
+              {{user.nickname}}
             </template>
             <el-menu-item index="/mine">我的帖子</el-menu-item>
+            <el-menu-item index @click="handlePassword"><i class="el-icon-back"></i>修改密码</el-menu-item>
             <el-menu-item index @click="handleLogout"><i class="el-icon-back"></i>退出</el-menu-item>
           </el-submenu>
         </template>
       </el-menu>
     </el-col>
     </el-row>
-  </el-header>-->
+    <el-dialog
+      :visible.sync="dialogVisible"
+      title="修改密码"
+      width="360px"
+    >
+      <el-form :form="userForm">
+        <el-form-item label="新密码">
+          <el-input v-model="userForm.password" placeholder="请输入新密码" />
+        </el-form-item>
+      </el-form>
+      <span slot="footer">
+          <el-button type="success" @click="handleConfirm">确定</el-button>
+          <el-button type="info" @click="handleCancel">取消</el-button>
+        </span>
+    </el-dialog>
+  </el-header>
 
 
-  <header v-if="activeNav !== 'Login' && activeNav !== 'Register'" style="margin-bottom: 60px;">
+  <!--<header v-if="activeNav !== 'Login' && activeNav !== 'Register'" style="margin-bottom: 60px;">
     <router-link :to="{ name: 'Home' }">
       <span class="site-name">新帖网</span>
     </router-link>
     <el-button type="danger" class="logout" @click="handleLogout">退出</el-button>
     <router-link :to="{ name: 'Mine' }">
-      <span class="username">{{user.username}}</span>
+      <span class="username">{{user.nickname}}</span>
     </router-link>
     <nav style="margin: 20px 0;width: 100%;">
       <router-link
@@ -102,12 +118,12 @@
         我的
       </router-link>
     </nav>
-  </header>
+  </header>-->
 
 </template>
 
 <script>
-import {listTabs } from '@/api';
+import {listTabs, updateUser } from '@/api';
 
 export default {
   name: 'ClientHeader',
@@ -119,7 +135,11 @@ export default {
       user: {},
       activeNav: 'Home',
       activeNavTab: '',
-      tabs: []
+      tabs: [],
+      userForm: {
+        password: ''
+      },
+      dialogVisible: false
     }
   },
   watch: {
@@ -140,6 +160,23 @@ export default {
     handleLogout () {
       window.sessionStorage.setItem('user', '{}')
       this.$router.push({ name: 'Login' })
+    },
+    handlePassword() {
+      this.dialogVisible = true;
+      this.resetForm();
+    },
+    async handleConfirm() {
+      this.user.password = this.userForm.password;
+      await updateUser(this.user);
+      this.$message({
+        type: 'success',
+        message: '修改密码成功'
+      });
+      this.dialogVisible = false;
+    },
+    handleCancel () {
+      this.dialogVisible = false
+      this.resetForm();
     },
     handleEvent(tab) {
       // console.log("导航被点击了");
@@ -162,57 +199,42 @@ export default {
           showClose: true
         })
       });
+    },
+    resetForm () {
+      this.userForm = {
+        password: ''
+      }
     }
   }
 }
 </script>
 
 <style scoped>
-  header {
-    width: 1100px;
-    height: 50px;
-    padding: 5px 20px;
-    box-sizing: border-box;
-    line-height: 40px;
-    margin: 10px auto;
-    border-radius: 5px;
-    background-color: whitesmoke;
-    font-size: 16px;
+  .el-header {
+    z-index: 1024;
+    min-width: 100%;
+    box-shadow: 0 0px 1px hsla(0, 0%, 7%, .1), 0 0 0 1px hsla(0, 0%, 7%, .1);
   }
-  a {
-    text-decoration: none;
+
+  .me-title {
+    margin-top: 10px;
+    font-size: 24px;
   }
-  header .site-name {
-    color: #409EFF;
-    font-size: 20px;
+
+  .me-header-left {
+    margin-top: 10px;
   }
-  header nav {
-    display: inline-block;
-    width: 40%;
-    margin-left: 30%;
+
+  .me-title img {
+    max-height: 2.4rem;
+    max-width: 100%;
   }
-  header nav a {
-    display: inline-block;
-    padding: 0 30px;
-    font-size: 18px;
-    margin: 0 10px;
-  }
-  header nav a:hover {
-    background-color: aquamarine;
-  }
-  header nav a.active {
-    background-color: aqua;
-  }
-  header .logout {
-    float: right;
-    position: relative;
-    top: 4px;
-  }
-  header .username {
-    color: #F56C6C;
-    font-size: 20px;
-    float: right;
-    margin-right: 20px;
-    cursor: pointer;
+
+  .me-header-picture {
+    width: 36px;
+    height: 36px;
+    border: 1px solid #ddd;
+    border-radius: 50%;
+    vertical-align: middle;
   }
 </style>

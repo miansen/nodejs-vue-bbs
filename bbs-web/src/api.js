@@ -50,6 +50,10 @@ export function saveLike (data) {
   return axios.post('/like/save', data)
 }
 
+export function saveComment (data) {
+  return axios.post('/comment/save', data)
+}
+
 export function addTab (data) {
   return axios.post('/tab/add', data)
 }

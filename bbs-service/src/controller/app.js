@@ -11,7 +11,8 @@ const tabService = require('../service/TabService');
 const xxjjService = require('../service/XxjjService');
 const postService = require('../service/PostService');
 const commentService = require('../service/CommentService');
-const likeService = require('../service/LikeService');
+const likerService = require('../service/LikerService');
+const fileService = require('../service/FileService');
 
 const app = new Koa();
 app.use(Cors());
@@ -23,12 +24,6 @@ app.use(KoaBody({
 }));
 
 const router = new KoaRouter();
-
-const userJson = path.join(__dirname, 'user.json');
-const invitationJson = path.join(__dirname, 'invitation.json');
-const settingsJson = path.join(__dirname, 'settings.json');
-const tabJson = path.join(__dirname, 'tab.json');
-const xxjjJson = path.join(__dirname, 'xxjj.json');
 
 router.post('/register', async (ctx, next) => {
     const { username, password, nickname } = ctx.request.body;
@@ -138,8 +133,6 @@ router.post('/add_invitation', async (ctx, next) => {
 
 router.put('/update_invitation', async (ctx, next) => {
     const post = ctx.request.body;
-    const likers = post.likers;
-    const comments = post.comments;
     let data = '';
     let error = '';
     try {
@@ -174,8 +167,9 @@ router.get('/toggle_top', async (ctx, next) => {
     let data = null;
     let error = '';
     try {
-        let post = await postService.getById(id);
-        post.isTop = true;
+        let postModel = await postService.getById(id);
+        let post = postModel.dataValues;
+        post.isTop = !post.isTop;
         await postService.update(post);
         data = "置顶成功";
     } catch (err) {
@@ -206,6 +200,19 @@ router.post('/like/save', async (ctx, next) => {
         let post = await postService.getById(like.postId);
         await post.createLike(like);
         data = "点赞成功";
+    } catch (err) {
+        error = err.toString();
+    }
+    ctx.body = { code: 200, data, error };
+});
+
+router.post('/comment/save', async (ctx, next) => {
+    const comment = ctx.request.body;
+    let data = '';
+    let error = '';
+    try {
+        await commentService.save(comment);
+        data = "评论成功";
     } catch (err) {
         error = err.toString();
     }
@@ -299,7 +306,7 @@ router.post('/upload', async (ctx, next) => {
     let data = {};
     const file = ctx.request.files.file;
     const reader = fs.createReadStream(file.path);
-    let filePath = path.join(__dirname, `/upload/${file.name}`);
+    let filePath = path.join(__dirname, `../../upload/${file.name}`);
     const upStream = fs.createWriteStream(filePath);
     reader.pipe(upStream);
     data.name = file.name;
@@ -311,7 +318,7 @@ router.get('/download/:name', async (ctx, next) => {
     const fileName = ctx.params.name;
     // ctx.set("Content-disposition", "attachment; filename=" + fileName);
     ctx.attachment(fileName);
-    await send(ctx, fileName, { root: __dirname + '/upload' });
+    await send(ctx, fileName, { root: __dirname + '../../../upload' });
 })
 
 router.get('/user/save', async (ctx, next) => {
